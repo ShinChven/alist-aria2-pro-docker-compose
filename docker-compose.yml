@@ -1,27 +1,56 @@
-version: "3.8"
+version: "3.9"
 
 services:
 
-  # alist official docker guide: https://alist-doc.nn.ci/en/docs/install/docker/
-  # docker run -d --restart=always -v /etc/alist:/opt/alist/data -p 5244:5244 --name="alist" xhofe/alist:latest
+# https://hub.docker.com/r/xhofe/alist
+# alist temp folder is /opt/alist/data/temp, qbittorrent, aria2 temp folder /opt/alist/data/qbittorrent 和 /opt/alist/data/aria2 不会产生IO冲突
   alist:
     image: xhofe/alist:latest
     container_name: alist
-    ports:
-      - "5244:5244"
-    restart: always
+    environment:
+      - PUID=1027 # 查询自己的uid 填写，后面依次修改
+      - PGID=100
+      - Qbittorrent_ADDRESS=qbittorrentee
+      - Qbittorrent_PORT=8181
     volumes:
-      - ${PWD}/alist:/opt/alist/data
+      - /volume2/homes/admin/docker-compose-server/alist/config:/opt/alist/data # 配置文件 # 与qbittorrent，aria2 路径的临时路径在这个目录下/opt/alist/data/temp
+      - /volume2/ISO:/mnt/ISO # 挂载自己的群晖家目录目录
+    ports:
+      - 5243:5244 # 使用外部5243，使用群辉的反向代理添加SSL证书。
+    restart: always
+    networks:
+      - alistbridge
 
-  # Aria2-pro-docker official guide: https://github.com/P3TERX/Aria2-Pro-Docker/blob/master/docker-compose.yml
+# https://hub.docker.com/r/superng6/qbittorrentee
+  qbittorrent:
+    image: superng6/qbittorrentee:latest
+    container_name: qbittorrentee
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Asia/Shanghai
+      - WEBUIPORT=8181
+    volumes:
+      - /volume2/homes/admin/docker-compose-server/alist/qbconfig:/config # 配置文件
+      - /volume2/homes/<用户名称>/downloads:/downloads # UI界面手动添加下载的路径映射
+      - /volume2/homes/admin/docker-compose-server/alist/config:/opt/alist/data # 自行修改配置文件具体路径，我使用绝对路径
+    ports:
+      - 8181:8181
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+    networks:
+      - alistbridge
+
+  # Aria2 Pro 的官方部署文档: https://github.com/P3TERX/Aria2-Pro-Docker/blob/master/docker-compose.yml
   Aria2-Pro:
     container_name: aria2-pro
     image: p3terx/aria2-pro
     environment:
-      - PUID=65534
-      - PGID=65534
+      - PUID=1027
+      - PGID=100
       - UMASK_SET=022
-      - RPC_SECRET=REPLACE_WITH_YOUR_OWN_ARIA2_RPC_SECRET # Please set your own RPC secret.
+      - RPC_SECRET=E4QqCAlMzHF4s6qROz+FR+tA8iG1FP2nVu8AkdPl654= # 配置Aria2 的 RPC secret 密钥，它将被用于 Alist 和 AriaNg 连接 Aria2, 使用命令：`openssl rand -base64 32`生成
       - RPC_PORT=6800
       - LISTEN_PORT=6888
       - DISK_CACHE=64M
@@ -30,8 +59,9 @@ services:
       - CUSTOM_TRACKER_URL=
       - TZ=Asia/Shanghai
     volumes:
-      - ${PWD}/aria2/config:/config
-      - ${PWD}/aria2/downloads:/downloads # It's where to store downloaded files.
+      - /volume2/homes/admin/docker-compose-server/alist/aria2config:/config # 配置文件
+      - /volume2/homes/<用户名称>/downloads:/downloads # UI界面手动添加下载的路径映射
+      - /volume2/homes/admin/docker-compose-server/alist/config:/opt/alist/data # 自行修改配置文件具体路径，我使用绝对路径
     ports:
       - "6800:6800"
       - "6888:6888"
@@ -41,11 +71,15 @@ services:
       driver: json-file
       options:
         max-size: 1m
+    networks:
+      - alistbridge
 
-  # Aria2 WebUI
   AriaNg:
+    image: p3terx/ariang:latest
     container_name: ariang
-    image: p3terx/ariang
+    environment:
+      - PUID=1027
+      - PGID=100
     command: --port 6880 --ipv6
     ports:
       - "6880:6880"
@@ -54,3 +88,9 @@ services:
       driver: json-file
       options:
         max-size: 1m
+    networks:
+      - alistbridge
+
+networks:
+  alistbridge:
+    driver: bridge

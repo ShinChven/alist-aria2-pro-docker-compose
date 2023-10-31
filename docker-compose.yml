@@ -2,13 +2,14 @@ version: "3.9"
 
 services:
 
-# https://hub.docker.com/r/xhofe/alist
+  # https://hub.docker.com/r/xhofe/alist
+  # https://alist.nn.ci/guide/install/docker.html#release-version
   alist:
     image: xhofe/alist:latest
     container_name: alist
     environment:
-      - PUID=65534
-      - PGID=65534
+      - PUID=65534 # Find your own user PUID and group PGID. https://docs.linuxserver.io/general/understanding-puid-and-pgid
+      - PGID=65534 # When using volumes (-v flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user PUID and group PGID.
       - Qbittorrent_ADDRESS=qbittorrentee
       - Qbittorrent_PORT=8181
     volumes:
@@ -16,27 +17,6 @@ services:
     ports:
       - 5244:5244 
     restart: always
-    networks:
-      - alistbridge
-
-# https://hub.docker.com/r/superng6/qbittorrentee
-  qbittorrent:
-    image: superng6/qbittorrentee:latest
-    container_name: qbittorrentee
-    environment:
-      - PUID=65534
-      - PGID=65534
-      - TZ=Asia/Shanghai
-      - WEBUIPORT=8181
-    volumes:
-      - ${PWD}/qbittorrent/config:/config       # config
-      - ${PWD}/qbittorrent/downloads:/downloads # Downloads
-      - ${PWD}/qbittorrent/data:/opt/alist/data # Data
-    ports:
-      - 8181:8181
-      - 6881:6881
-      - 6881:6881/udp
-    restart: unless-stopped
     networks:
       - alistbridge
 
@@ -86,6 +66,27 @@ services:
       driver: json-file
       options:
         max-size: 1m
+    networks:
+      - alistbridge
+
+  # https://hub.docker.com/r/superng6/qbittorrentee
+  qbittorrent:
+    image: superng6/qbittorrentee:latest
+    container_name: qbittorrentee
+    environment:
+      - PUID=65534
+      - PGID=65534
+      - TZ=Asia/Shanghai
+      - WEBUIPORT=8181
+    volumes:
+      - ${PWD}/qbittorrent/config:/config       # config
+      - ${PWD}/qbittorrent/downloads:/downloads # Downloads
+      - ${PWD}/qbittorrent/data:/opt/alist/data # Data
+    ports:
+      - 8181:8181
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
     networks:
       - alistbridge
 

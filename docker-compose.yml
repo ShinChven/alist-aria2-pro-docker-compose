@@ -8,8 +8,8 @@ services:
     image: xhofe/alist:latest
     container_name: alist
     environment:
-      - PUID=65534 # Find your own user PUID and group PGID. https://docs.linuxserver.io/general/understanding-puid-and-pgid
-      - PGID=65534 # When using volumes (-v flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user PUID and group PGID.
+      - PUID=0 # Find your own user PUID and group PGID. https://docs.linuxserver.io/general/understanding-puid-and-pgid
+      - PGID=0 # When using volumes (-v flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user PUID and group PGID.
       - Qbittorrent_ADDRESS=qbittorrentee
       - Qbittorrent_PORT=8181
     volumes:
@@ -25,8 +25,8 @@ services:
     container_name: aria2-pro
     image: p3terx/aria2-pro
     environment:
-      - PUID=65534
-      - PGID=65534
+      - PUID=0
+      - PGID=0
       - UMASK_SET=022
       - RPC_SECRET=REPLACE_WITH_YOUR_OWN_ARIA2_RPC_SECRET # Please set your own RPC secret.
       - RPC_PORT=6800
@@ -56,8 +56,8 @@ services:
     image: p3terx/ariang:latest
     container_name: ariang
     environment:
-      - PUID=65534
-      - PGID=65534
+      - PUID=0
+      - PGID=0
     command: --port 6880 --ipv6
     ports:
       - "6880:6880"
@@ -74,8 +74,8 @@ services:
     image: superng6/qbittorrentee:latest
     container_name: qbittorrentee
     environment:
-      - PUID=65534
-      - PGID=65534
+      - PUID=0
+      - PGID=0
       - TZ=Asia/Shanghai
       - WEBUIPORT=8181
     volumes:

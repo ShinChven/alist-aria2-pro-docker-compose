@@ -37,9 +37,9 @@ services:
       - CUSTOM_TRACKER_URL=
       - TZ=Asia/Shanghai
     volumes:
-      - ${PWD}/aria2/config:/config # 配置文件
-      - ${PWD}/aria2/downloads:/downloads # UI界面手动添加下载的路径映射
-      - ${PWD}/aria2/data:/opt/alist/data # 自行修改配置文件具体路径，我使用绝对路径
+      - ${PWD}/aria2/config:/config       # Aria2 Config
+      - ${PWD}/aria2/downloads:/downloads # Aria2 Default Download Path
+      - ${PWD}/aria2/data:/opt/alist/data # Aria2 Data folder
     ports:
       - "6800:6800"
       - "6888:6888"
